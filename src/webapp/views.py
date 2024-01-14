@@ -1,11 +1,11 @@
 from fastapi import HTTPException
 
-from webapp import app as fastapi_app
+from webapp import app
 from webapp.models import CrawlRequest
 from crawler.spider import Spider
 
 
-@fastapi_app.post('/crawl')
+@app.post('/crawl')
 def initiate_crawl(crawl_request: CrawlRequest):
     try:
         crawl_id = Spider.initiate_crawl(crawl_request)
@@ -13,8 +13,8 @@ def initiate_crawl(crawl_request: CrawlRequest):
     except Exception as e:
         raise HTTPException(status_code=400, detail=f'Invalid request data: {str(e)}')
 
-# Endpoint to check the status of a crawl
-@fastapi_app.get('/status/{crawl_id}')
+
+@app.get('/status/{crawl_id}')
 def get_crawl_status(crawl_id: str):
     status = Spider.get_crawl_status(crawl_id)
     if status:
