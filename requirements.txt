@@ -1,2 +1,4 @@
 Flask==3.0.0
 Flask_RESTful==0.3.10
+fastapi==0.109.0
+uvicorn==0.25.0
