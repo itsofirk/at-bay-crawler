@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 
-from app import app as fastapi_app
-from app.models import CrawlRequest
+from webapp import app as fastapi_app
+from webapp.models import CrawlRequest
 from crawler.spider import Spider
 
 

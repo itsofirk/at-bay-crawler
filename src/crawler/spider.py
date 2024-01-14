@@ -1,4 +1,4 @@
-from app.models import CrawlRequest
+from webapp.models import CrawlRequest
 
 
 class Spider:
