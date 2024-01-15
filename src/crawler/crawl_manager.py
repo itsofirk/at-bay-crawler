@@ -10,14 +10,15 @@ from multiprocessing import Pool
 class CrawlManager:
     def __init__(self, feed_storage: BaseStorage, max_parallel_jobs: int = 1):
         self.max_parallel_jobs = max_parallel_jobs
-        self.pool = Pool(processes=max_parallel_jobs)  # Create a pool of worker processes
         self.feed_storage = feed_storage
 
     def start_listening(self):
         while True:
             crawl_request = queue.get()  # Get the crawl request from the queue
-            # Process the crawl request asynchronously
-            self.pool.apply_async(self.process_crawl_request, (crawl_request,))
+            # Create a pool of worker processes
+            with Pool(processes=self.max_parallel_jobs) as pool:
+                # Process the crawl request asynchronously
+                pool.apply_async(self.process_crawl_request, (crawl_request,))
 
     def process_crawl_request(self, crawl_request):
         crawl_id = crawl_request['crawl_id']
