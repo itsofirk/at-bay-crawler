@@ -2,6 +2,7 @@ from scrapy.crawler import CrawlerProcess
 from crawler.scrapy_spider import ScrapySpider
 from common.db import set_status
 from common.queue import queue
+from common.enums import CrawlStatus
 from multiprocessing import Pool
 
 
@@ -18,9 +19,9 @@ class CrawlManager:
 
     def process_crawl_request(self, crawl_request):
         crawl_id = crawl_request['crawl_id']
-        set_status(crawl_id, 'Running')
+        set_status(crawl_id, CrawlStatus.RUNNING.value)
         self._start_scrapy_crawler(crawl_id, crawl_request)
-        set_status(crawl_id, 'Complete')
+        set_status(crawl_id, CrawlStatus.COMPLETE.value)
 
     def _start_scrapy_crawler(self, job_id, crawl_requests):
         process = CrawlerProcess(settings={

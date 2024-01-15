@@ -5,13 +5,14 @@ from webapp import app
 from webapp.models import CrawlRequest
 from common.db import set_status, get_status
 from common.queue import queue
+from common.enums import CrawlStatus
 
 
 @app.post('/crawl')
 def initiate_crawl(crawl_request: CrawlRequest):
     try:
         crawl_id = str(uuid.uuid4())  # Generate a unique crawl_id
-        set_status(crawl_id, 'Accepted')
+        set_status(crawl_id, CrawlStatus.ACCEPTED.value)
         crawl_request_dict = crawl_request.dict()
         crawl_request_dict['crawl_id'] = crawl_id  # Add the crawl_id to the crawl request
         queue.put(crawl_request_dict)  # Put the crawl request in the queue
@@ -26,4 +27,4 @@ def get_crawl_status(crawl_id: str):
     if status:
         return {'status': status}
     else:
-        raise HTTPException(status_code=404, detail='Crawl-id not found')
+        raise HTTPException(status_code=404, detail=CrawlStatus.NOT_FOUND.value)
