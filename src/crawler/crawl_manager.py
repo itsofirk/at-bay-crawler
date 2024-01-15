@@ -1,7 +1,7 @@
 from scrapy.crawler import CrawlerProcess
 from crawler.scrapy_spider import ScrapySpider
-from common.db import set_status
-from common.queue import queue
+from infra.db import set_status
+from infra.queue import queue
 from common.enums import CrawlStatus
 from multiprocessing import Pool
 

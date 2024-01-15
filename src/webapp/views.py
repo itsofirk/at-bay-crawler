@@ -3,8 +3,8 @@ from fastapi import HTTPException
 
 from webapp import app
 from webapp.models import CrawlRequest
-from common.db import set_status, get_status
-from common.queue import queue
+from infra.db import set_status, get_status
+from infra.queue import queue
 from common.enums import CrawlStatus
 
 
