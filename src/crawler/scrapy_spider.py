@@ -14,16 +14,21 @@ class ScrapySpider(CrawlSpider):
     name = "web_crawler"
     handle_httpstatus_list = [404, 500]  # Handle 404 and 500 errors
 
-    def __init__(self, feed_storage: BaseStorage, crawl_task=None, *args, **kwargs):
+    def __init__(self, feed_storage: BaseStorage, crawl_request, *args, **kwargs):
         super(ScrapySpider, self).__init__(*args, **kwargs)
-        self.start_urls = [crawl_task['url']]
-        self.allowed_domains = [crawl_task['allowed_domains']]
-        self.crawl_id = crawl_task['crawl_id']
+        self.start_urls = [crawl_request['url']]
+        self.allowed_domains = [self.extract_domain(crawl_request['url'])]
+        self.crawl_id = crawl_request['crawl_id']
         self.rules = (
             Rule(LinkExtractor(allow_domains=self.allowed_domains), callback='parse_item', follow=True),
         )
         self.feed_storage = feed_storage
         logger.info(f'ScrapySpider initialized successfully. crawl_id: {self.crawl_id}')
+
+    def extract_domain(self, url):
+        parsed_url = urlparse(url)
+        domain = parsed_url.netloc
+        return domain
 
     def parse_item(self, response):
         logger.debug(f'Parsing item: {response.url}')
