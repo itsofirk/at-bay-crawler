@@ -5,7 +5,6 @@ from fastapi import HTTPException
 from webapp import app
 from webapp.models import CrawlRequest
 from infra.db import set_status, get_status
-from infra.queue import queue
 from common.enums import CrawlStatus
 
 logger = logging.getLogger(__name__)
@@ -16,9 +15,9 @@ def initiate_crawl(crawl_request: CrawlRequest):
     try:
         crawl_id = str(uuid.uuid4())  # Generate a unique crawl_id
         set_status(crawl_id, CrawlStatus.ACCEPTED.value)
-        crawl_request_dict = crawl_request.dict()
-        crawl_request_dict['crawl_id'] = crawl_id  # Add the crawl_id to the crawl request
-        queue.put(crawl_request_dict)  # Put the crawl request in the queue
+        crawl_request_dict = crawl_request.model_dump()
+        crawl_request_dict['crawl_id'] = crawl_id
+        app.queue.put(crawl_request_dict)
         logger.info(f'Crawl initiated successfully. crawl_id: {crawl_id}')
         return {'crawl_id': crawl_id}
     except Exception as e:

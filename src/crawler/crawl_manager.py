@@ -5,22 +5,24 @@ from scrapy.crawler import CrawlerProcess
 from crawler.scrapy_spider import ScrapySpider
 from infra.base_storage import BaseStorage
 from infra.db import set_status
-from infra.queue import queue
 from common.enums import CrawlStatus
 
 logger = logging.getLogger(__name__)
 
 
 class CrawlManager:
-    def __init__(self, feed_storage: BaseStorage, max_parallel_jobs: int = 1):
+    def __init__(self, feed_storage: BaseStorage, queue, max_parallel_jobs: int = 1):
         self.max_parallel_jobs = max_parallel_jobs
         self.feed_storage = feed_storage
+        self.queue = queue
+        logger.info('Crawl manager initialized successfully.')
 
     def start_listening(self):
         with Pool(processes=self.max_parallel_jobs) as pool:
             while True:
-                crawl_request = queue.get()
-                logger.debug(f'Received crawl request: {crawl_request}')
+                logger.info('Waiting for new crawl request...')
+                crawl_request = self.queue.get()
+                logger.info(f'Received crawl request: {crawl_request}')
                 try:
                     # Process the crawl request asynchronously
                     pool.apply_async(self.process_crawl_request, (crawl_request,))
