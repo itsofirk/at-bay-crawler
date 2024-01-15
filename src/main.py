@@ -1,6 +1,7 @@
+import uvicorn
 from multiprocessing import Process
 from crawler.crawl_manager import CrawlManager
-import uvicorn
+from infra.local_fs_storage import LocalFSStorage
 
 
 def start_webapp():
@@ -8,12 +9,15 @@ def start_webapp():
 
 
 if __name__ == "__main__":
+    # Create the feed storage
+    feed_storage = LocalFSStorage(base_dir="crawl_jobs")
+
     # Create the webapp process
     webapp_process = Process(target=start_webapp)
     webapp_process.start()
 
     # Create the crawler process
-    crawl_manager = CrawlManager()
+    crawl_manager = CrawlManager(feed_storage=feed_storage)
     crawler_process = Process(target=crawl_manager.start_listening)
     crawler_process.start()
 
