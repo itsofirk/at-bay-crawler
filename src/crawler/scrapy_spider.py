@@ -1,7 +1,9 @@
-import scrapy
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy.linkextractors import LinkExtractor
 from scrapy.exceptions import CloseSpider
+
+# Assuming the object_storage module is in infra/object_storage.py
+from infra.object_storage import save_html
 
 
 class ScrapySpider(CrawlSpider):
@@ -12,6 +14,7 @@ class ScrapySpider(CrawlSpider):
         super(ScrapySpider, self).__init__(*args, **kwargs)
         self.start_urls = [crawl_task['url']]
         self.allowed_domains = [crawl_task['allowed_domains']]
+        self.crawl_id = crawl_task['crawl_id']
         self.rules = (
             Rule(LinkExtractor(allow_domains=self.allowed_domains), callback='parse_item', follow=True),
         )
@@ -21,7 +24,4 @@ class ScrapySpider(CrawlSpider):
             raise CloseSpider('Response code {} for url {}'.format(response.status, response.url))
 
         page_html = response.text
-        # Here you can add the logic to store the HTML in your desired location
-        # For example, you can store it in a file or a database
-        # In this example, we'll just print it
-        print(page_html)
+        save_html(self.crawl_id, page_html)
