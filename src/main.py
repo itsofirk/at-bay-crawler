@@ -2,8 +2,10 @@ from multiprocessing import Process
 from crawler.crawl_manager import CrawlManager
 import uvicorn
 
+
 def start_webapp():
     uvicorn.run("webapp.app:app", host="0.0.0.0", port=8000)
+
 
 if __name__ == "__main__":
     # Create the webapp process
