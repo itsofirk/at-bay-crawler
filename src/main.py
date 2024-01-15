@@ -1,10 +1,10 @@
-import logging
 import uvicorn
 from multiprocessing import Process
 from crawler.crawl_manager import CrawlManager
 from infra.local_fs_storage import LocalFSStorage
+from common.logging_utils import setup_logger
 
-logger = logging.getLogger(__name__)
+logger = setup_logger(__name__)
 
 
 def start_webapp():
