@@ -1,8 +1,13 @@
+import logging
+from urllib.parse import urlparse
+
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy.linkextractors import LinkExtractor
 from scrapy.exceptions import CloseSpider
 
 from infra.base_storage import BaseStorage
+
+logger = logging.getLogger(__name__)
 
 
 class ScrapySpider(CrawlSpider):
@@ -18,8 +23,10 @@ class ScrapySpider(CrawlSpider):
             Rule(LinkExtractor(allow_domains=self.allowed_domains), callback='parse_item', follow=True),
         )
         self.feed_storage = feed_storage
+        logger.info(f'ScrapySpider initialized successfully. crawl_id: {self.crawl_id}')
 
     def parse_item(self, response):
+        logger.debug(f'Parsing item: {response.url}')
         if response.status in self.handle_httpstatus_list:
             raise CloseSpider('Response code {} for url {}'.format(response.status, response.url))
 
