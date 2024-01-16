@@ -11,7 +11,7 @@ class LocalFSStorage(BaseStorage):
         super().__init__(*args, **kwargs)
         self.base_dir = kwargs.get('base_dir', 'crawl_jobs')
 
-    def save_html(self, crawl_id, url, html_content):
+    def save_html(self, crawl_id, url, html_content, encoding="utf-8"):
         # Generate a filename from the URL
         parsed_url = urlparse(url)
         filename = f"{parsed_url.netloc}{parsed_url.path}".replace('/', '_')
@@ -19,7 +19,7 @@ class LocalFSStorage(BaseStorage):
         # Save the HTML content to a file
         html_filepath = os.path.join(self.base_dir, crawl_id, f"{filename}.html")
         logger.debug(f'Saving HTML content to file: {html_filepath}')
-        with open(html_filepath, 'w') as f:
+        with open(html_filepath, 'w', encoding=encoding) as f:
             f.write(html_content)
         return html_filepath
 
@@ -28,4 +28,4 @@ class LocalFSStorage(BaseStorage):
         crawl_dir = os.path.join(self.base_dir, crawl_id)
         logger.debug(f'Creating directory for crawl_id: {crawl_id} at {crawl_dir}')
         os.makedirs(crawl_dir, exist_ok=True)
-        return crawl_dir
+        return os.path.abspath(crawl_dir)

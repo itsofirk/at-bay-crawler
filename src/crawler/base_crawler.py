@@ -51,5 +51,5 @@ class BaseCrawler:
             parsed_url = urlparse(link)
             if not parsed_url.netloc:
                 link = urljoin(self.start_url, link)
-            if not self.check_visited(link) and self.check_rules(parsed_url):
+            if not self.check_visited(link) and self.check_rules(link):
                 yield link

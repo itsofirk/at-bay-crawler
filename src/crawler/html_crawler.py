@@ -26,7 +26,7 @@ class HTMLCrawler(BaseCrawler):
             response.raise_for_status()
 
             page_html = response.text
-            self.feed_storage.save_html(self.crawl_id, url, page_html)
+            self.feed_storage.save_html(self.crawl_id, url, page_html, encoding=response.encoding)
             self.visited_urls.add(url)
             links = self.extract_links(response)
 

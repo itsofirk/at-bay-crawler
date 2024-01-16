@@ -44,20 +44,14 @@ class CrawlManager:
                     crawler = self.crawler_class(**crawl_request, **self.crawler_kwargs)
                     self.update_status(crawl_request["crawl_id"], CrawlStatus.RUNNING)
                     # Process the crawl request asynchronously
-                    pool.apply_async(crawler.crawl, callback=self.success_callback, error_callback=self.fail_callback)
+                    pool.apply_async(crawler.crawl, callback=self.handle_crawl_result)
                     logger.info(f'Crawl request added to processing queue. crawl_id: {crawl_request["crawl_id"]}')
                 except Exception as e:
                     logger.error(f'Error processing crawl request: {str(e)}')
 
-    def handle_crawl_result(self, result, status):
-        logger.info(f'Crawl request {status}. crawl_id: {result["crawl_id"]}')
+    def handle_crawl_result(self, result):
+        status = result.pop("status")
         crawl_id = result.pop("crawl_id")
-        assert result.pop("status") == status
-
+        logger.debug(f'Crawl request {status}. crawl_id: {crawl_id}')
         self.update_status(crawl_id, status, **result)
 
-    def success_callback(self, result):
-        self.handle_crawl_result(result, CrawlStatus.COMPLETE)
-
-    def fail_callback(self, result):
-        self.handle_crawl_result(result, CrawlStatus.ERROR)
