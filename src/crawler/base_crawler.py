@@ -1,4 +1,4 @@
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 from bs4 import BeautifulSoup
 
 from infra.base_storage import BaseStorage
@@ -15,6 +15,11 @@ class BaseCrawler:
 
     def extract_links(self, html):
         soup = BeautifulSoup(html, 'html.parser')
-        links = [a.get('href') for a in soup.find_all('a', href=True)]
-        absolute_links = [urljoin(self.start_url, link) for link in links]
-        return absolute_links
+        for a in soup.find_all('a', href=True):
+            link = a.get('href')
+            parsed_url = urlparse(link)
+            # Check if the link is relative or absolute
+            if not parsed_url.netloc:
+                yield urljoin(self.start_url, link)
+            else:
+                yield link
