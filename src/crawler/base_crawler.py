@@ -13,10 +13,12 @@ class BaseCrawler:
         self.start_url = start_url
         self.crawl_id = crawl_id
         self.rules = rules or []
+        self.visited_urls = set()
 
     def start(self):
         logger.info(f'Starting crawl for {self.crawl_id}')
         self.process_url(self.start_url)
+        self.visited_urls.add(self.start_url)
 
     def process_url(self, url):
         """
@@ -29,6 +31,9 @@ class BaseCrawler:
         Check if the url matches all the rules in the rules list
         """
         return all(rule.check(url) for rule in self.rules)
+
+    def check_visited(self, url):
+        return url in self.visited_urls
 
     def extract_links(self, response):
         """
@@ -45,5 +50,5 @@ class BaseCrawler:
             parsed_url = urlparse(link)
             if not parsed_url.netloc:
                 link = urljoin(self.start_url, link)
-            if self.check_rules(link):
+            if not self.check_visited(link) and self.check_rules(link):
                 yield link
