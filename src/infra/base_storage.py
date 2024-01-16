@@ -7,3 +7,6 @@ class BaseStorage(ABC):
 
     def save_html(self, crawl_id, url, html) -> str:
         pass
+
+    def save_crawl_request(self, crawl_id, start_url):
+        pass
