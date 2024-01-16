@@ -23,7 +23,20 @@ def get_status(crawl_id):
     try:
         status = conn.hget(crawl_id, 'status')
         logger.info(f'Status retrieved successfully. crawl_id: {crawl_id}, status: {status}')
-        return status
+        return CrawlStatus(status)
     except Exception as e:
         logger.error(f'Error getting status: {str(e)}')
-        return None
+        return CrawlStatus.NOT_FOUND
+
+
+def get_crawl(crawl_id):
+    try:
+        data = conn.hgetall(crawl_id)
+        logger.info(f'Status retrieved successfully. crawl_id: {crawl_id}, status: {data["status"]}')
+        response = {'status': data['status']}
+        if data["status"] == CrawlStatus.COMPLETE.value:
+            response['directory'] = data['directory']
+        return response
+    except Exception as e:
+        logger.error(f'Error getting data: {str(e)}')
+        return {'status': CrawlStatus.NOT_FOUND.value}
