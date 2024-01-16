@@ -5,7 +5,7 @@ from infra.base_storage import BaseStorage
 
 
 class HTMLCrawler(BaseCrawler):
-    def __init__(self, start_url, crawl_id, feed_storage: BaseStorage, rules):
+    def __init__(self, start_url, crawl_id, rules, feed_storage: BaseStorage):
         super(HTMLCrawler, self).__init__(start_url, crawl_id, rules=rules)
         self.feed_storage = feed_storage
 
