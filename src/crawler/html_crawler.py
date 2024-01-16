@@ -14,8 +14,11 @@ class HTMLCrawler(BaseCrawler):
         ]
 
     def crawl(self):
-        self.feed_storage.save_crawl_request(self.crawl_id, self.start_url)
-        super().crawl()
+        crawl_directory = self.feed_storage.save_crawl_request(self.crawl_id, self.start_url)
+        result = super().crawl()
+        result["directory"] = crawl_directory
+        result["crawl_id"] = self.crawl_id
+        return result
 
     def process_url(self, url):
         try:
@@ -24,14 +27,15 @@ class HTMLCrawler(BaseCrawler):
 
             page_html = response.text
             self.feed_storage.save_html(self.crawl_id, url, page_html)
-
+            self.visited_urls.add(url)
             links = self.extract_links(response)
-            valid_links = [link for link in links if all(rule.check(link) for rule in self.rules)]
 
-            for link in valid_links:
-                self.process_url(link)
+            for link in links:
+                response = self.process_url(link)
+                if response["status"] == CrawlStatus.ERROR:
+                    return response  # Stop crawling if an error occurs
 
-            return CrawlStatus.COMPLETE
-        except requests.exceptions.RequestException as e:
+            return {"status": CrawlStatus.COMPLETE}
+        except Exception as e:
             print(f"Error crawling {url}: {str(e)}")
-            return CrawlStatus.ERROR
+            return {"status": CrawlStatus.ERROR, "error": str(e)}

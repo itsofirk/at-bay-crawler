@@ -17,8 +17,9 @@ class BaseCrawler:
 
     def crawl(self):
         logger.info(f'Starting crawl for {self.crawl_id}')
-        self.process_url(self.start_url)
+        result = self.process_url(self.start_url)
         self.visited_urls.add(self.start_url)
+        return result
 
     def process_url(self, url):
         """
