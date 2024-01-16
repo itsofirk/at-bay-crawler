@@ -20,7 +20,7 @@ class ScrapySpider(CrawlSpider):
         self.allowed_domains = [self.extract_domain(crawl_request['url'])]
         self.crawl_id = crawl_request['crawl_id']
         self.rules = (
-            Rule(LinkExtractor(allow_domains=self.allowed_domains), callback='parse_item', follow=True),
+            Rule(LinkExtractor(allow_domains=self.allowed_domains), callback=self.parse_item, follow=True),
         )
         self.feed_storage = feed_storage
         logger.info(f'ScrapySpider initialized successfully. crawl_id: {self.crawl_id}')
