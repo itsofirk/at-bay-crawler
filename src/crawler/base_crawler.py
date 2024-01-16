@@ -1,19 +1,28 @@
+import logging
 from typing import List
 from urllib.parse import urljoin, urlparse
 from bs4 import BeautifulSoup
 
 from crawler.rules import BaseRule
-from infra.base_storage import BaseStorage
+
+logger = logging.getLogger(__name__)
 
 
 class BaseCrawler:
-    def __init__(self, feed_storage: BaseStorage, crawl_id, rules: List[BaseRule] = None):
-        self.feed_storage = feed_storage
+    def __init__(self, start_url, crawl_id, rules: List[BaseRule] = None):
+        self.start_url = start_url
         self.crawl_id = crawl_id
         self.rules = rules or []
 
-    def crawl(self, url, depth):
-        raise NotImplementedError("Subclasses must implement the crawl method")
+    def start(self):
+        logger.info(f'Starting crawl for {self.crawl_id}')
+        self.process_url(self.start_url)
+
+    def process_url(self, url):
+        """
+        Process a single URL and return.
+        """
+        raise NotImplementedError("Subclasses must implement the process_url method")
 
     def check_rules(self, url):
         """
@@ -21,8 +30,16 @@ class BaseCrawler:
         """
         return all(rule.check(url) for rule in self.rules)
 
-    def extract_links(self, html):
-        soup = BeautifulSoup(html, 'html.parser')
+    def extract_links(self, response):
+        """
+        Extract follow-up links from the html that match the rules
+        """
+        html = response.text
+        try:
+            soup = BeautifulSoup(html, 'html.parser')
+        except Exception as e:
+            logger.error(f"Error parsing HTML: {str(e)}")
+            return
         for a in soup.find_all('a', href=True):
             link = a.get('href')
             parsed_url = urlparse(link)
