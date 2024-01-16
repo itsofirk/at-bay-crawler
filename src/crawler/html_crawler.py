@@ -1,13 +1,17 @@
 import requests
 from common.enums import CrawlStatus
 from crawler.base_crawler import BaseCrawler
+from crawler.rules.domain_rule import DomainRule
 from infra.base_storage import BaseStorage
 
 
 class HTMLCrawler(BaseCrawler):
-    def __init__(self, start_url, crawl_id, rules, feed_storage: BaseStorage):
-        super(HTMLCrawler, self).__init__(start_url, crawl_id, rules=rules)
+    def __init__(self, start_url, crawl_id, feed_storage: BaseStorage):
+        super(HTMLCrawler, self).__init__(start_url, crawl_id)
         self.feed_storage = feed_storage
+        self.rules = [
+            DomainRule(self.start_url),
+        ]
 
     def crawl(self):
         self.feed_storage.save_crawl_request(self.crawl_id, self.start_url)

@@ -9,10 +9,10 @@ logger = logging.getLogger(__name__)
 
 
 class BaseCrawler:
-    def __init__(self, start_url, crawl_id, rules: List[BaseRule] = None):
+    def __init__(self, start_url, crawl_id):
         self.start_url = start_url
         self.crawl_id = crawl_id
-        self.rules = rules or []
+        self.rules: List[BaseRule] = []
         self.visited_urls = set()
 
     def crawl(self):
