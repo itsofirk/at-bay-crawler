@@ -1,19 +1,9 @@
 import requests
-from typing import List
-from bs4 import BeautifulSoup
-from urllib.parse import urljoin
-
-from infra.base_storage import BaseStorage
 from common.enums import CrawlStatus
+from crawler.base_crawler import BaseCrawler
 
 
-class SimpleCrawler:
-
-    def __init__(self, feed_storage: BaseStorage, crawl_id: int, rules: List[str] = None):
-        self.feed_storage = feed_storage
-        self.crawl_id = crawl_id
-        self.rules = rules or []
-
+class HTMLCrawler(BaseCrawler):
     def crawl(self, url, depth=2):
         try:
             response = requests.get(url)
@@ -33,9 +23,3 @@ class SimpleCrawler:
         except requests.exceptions.RequestException as e:
             print(f"Error crawling {url}: {str(e)}")
             return CrawlStatus.ERROR
-
-    def extract_links(self, html):
-        soup = BeautifulSoup(html, 'html.parser')
-        links = [a.get('href') for a in soup.find_all('a', href=True)]
-        absolute_links = [urljoin(self.start_url, link) for link in links]
-        return absolute_links
