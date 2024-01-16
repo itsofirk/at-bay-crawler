@@ -42,6 +42,7 @@ class CrawlManager:
                 try:
                     self._validate_crawl_request(crawl_request)
                     crawler = self.crawler_class(**crawl_request, **self.crawler_kwargs)
+                    self.update_status(crawl_request["crawl_id"], CrawlStatus.RUNNING)
                     # Process the crawl request asynchronously
                     pool.apply_async(crawler.crawl, callback=self.success_callback, error_callback=self.fail_callback)
                     logger.info(f'Crawl request added to processing queue. crawl_id: {crawl_request["crawl_id"]}')
