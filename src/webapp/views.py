@@ -4,7 +4,7 @@ from fastapi import HTTPException
 
 from webapp import app
 from webapp.models import CrawlRequest
-from infra.db import set_status, get_status
+from infra import db
 from common.enums import CrawlStatus
 
 logger = logging.getLogger(__name__)
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 def initiate_crawl(crawl_request: CrawlRequest):
     try:
         crawl_id = str(uuid.uuid4())  # Generate a unique crawl_id
-        set_status(crawl_id, CrawlStatus.ACCEPTED.value)
+        db.set_status(crawl_id, CrawlStatus.ACCEPTED, start_url=crawl_request.start_url)
         crawl_request_dict = crawl_request.model_dump()
         crawl_request_dict['crawl_id'] = crawl_id
         app.queue.put(crawl_request_dict)
@@ -27,10 +27,10 @@ def initiate_crawl(crawl_request: CrawlRequest):
 
 @app.get('/status/{crawl_id}')
 def get_crawl_status(crawl_id: str):
-    status = get_status(crawl_id)
-    if status:
-        logger.info(f'Crawl status retrieved successfully. crawl_id: {crawl_id}, status: {status}')
-        return {'status': status}
-    else:
-        logger.warning(f'Crawl status not found. crawl_id: {crawl_id}')
-        raise HTTPException(status_code=404, detail=CrawlStatus.NOT_FOUND.value)
+    crawl = db.get_crawl(crawl_id)
+    logger.info(f'Crawl status retrieved successfully. crawl_id: {crawl_id}, status: {crawl["status"]}')
+    if crawl["status"] == CrawlStatus.COMPLETE.value:
+        return {'status': crawl["status"], 'directory': crawl["directory"]}
+    elif crawl["status"] == CrawlStatus.ERROR.value:
+        return {'status': crawl["status"], 'error': crawl["error"]}
+    return {'status': crawl["status"]}

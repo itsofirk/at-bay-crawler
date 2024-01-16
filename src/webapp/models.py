@@ -2,4 +2,4 @@ from pydantic import BaseModel
 
 
 class CrawlRequest(BaseModel):
-    url: str
+    start_url: str
