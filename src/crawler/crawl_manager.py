@@ -2,6 +2,8 @@ import logging
 from multiprocessing import Pool
 from typing import Type
 
+from common.enums import CrawlStatus
+from infra.db import set_status
 from crawler.base_crawler import BaseCrawler
 
 logger = logging.getLogger(__name__)
@@ -28,6 +30,9 @@ class CrawlManager:
         if 'crawl_id' not in crawl_request:
             raise ValueError('crawl_id must be provided in the crawl request')
 
+    def update_status(self, crawl_id: str, status: CrawlStatus, **kwargs):
+        set_status(crawl_id, status, **kwargs)
+
     def start_listening(self):
         with Pool(processes=self.max_parallel_jobs) as pool:
             while True:
@@ -38,7 +43,20 @@ class CrawlManager:
                     self._validate_crawl_request(crawl_request)
                     crawler = self.crawler_class(**crawl_request, **self.crawler_kwargs)
                     # Process the crawl request asynchronously
-                    pool.apply(crawler.crawl)
+                    pool.apply_async(crawler.crawl, callback=self.success_callback, error_callback=self.fail_callback)
                     logger.info(f'Crawl request added to processing queue. crawl_id: {crawl_request["crawl_id"]}')
                 except Exception as e:
                     logger.error(f'Error processing crawl request: {str(e)}')
+
+    def handle_crawl_result(self, result, status):
+        logger.info(f'Crawl request {status}. crawl_id: {result["crawl_id"]}')
+        crawl_id = result.pop("crawl_id")
+        assert result.pop("status") == status
+
+        self.update_status(crawl_id, status, **result)
+
+    def success_callback(self, result):
+        self.handle_crawl_result(result, CrawlStatus.COMPLETE)
+
+    def fail_callback(self, result):
+        self.handle_crawl_result(result, CrawlStatus.ERROR)

@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 def initiate_crawl(crawl_request: CrawlRequest):
     try:
         crawl_id = str(uuid.uuid4())  # Generate a unique crawl_id
-        set_status(crawl_id, CrawlStatus.ACCEPTED.value)
+        set_status(crawl_id, CrawlStatus.ACCEPTED, start_url=crawl_request.start_url)
         crawl_request_dict = crawl_request.model_dump()
         crawl_request_dict['crawl_id'] = crawl_id
         app.queue.put(crawl_request_dict)
