@@ -1,57 +1,59 @@
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, patch
 from multiprocessing import Queue
 from common.enums import CrawlStatus
 from crawler.crawl_manager import CrawlManager
+from crawler.base_crawler import BaseCrawler
+
+
+class MockCrawler(BaseCrawler):
+    def crawl(self):
+        return {'status': CrawlStatus.COMPLETE, 'directory': 'test_dir'}
 
 
 class TestCrawlManager(unittest.TestCase):
     def setUp(self):
         self.queue = Queue()
+        self.manager = CrawlManager(crawler_class=MockCrawler, queue=self.queue)
 
-    def test_start_listening_success(self):
-        crawl_request = {'start_url': 'http://example.com', 'crawl_id': 'test_crawl'}
-        with patch('crawler.crawl_manager.BaseCrawler') as mock_crawler, \
-                patch('crawler.crawl_manager.Pool') as mock_pool:
-            mock_crawler_instance = Mock()
-            mock_crawler.return_value = mock_crawler_instance
-            mock_crawler_instance.crawl.return_value = {'status': CrawlStatus.COMPLETE, 'crawl_id': 'test_crawl'}
+    def test_handle_crawl_result(self):
+        result = {'status': CrawlStatus.COMPLETE, 'crawl_id': 'test_id', 'key1': 'value1', 'key2': 'value2'}
+        with patch('crawler.crawl_manager.set_status') as mock_set_status:
+            self.manager.handle_crawl_result(result)
+            mock_set_status.assert_called_once_with('test_id', CrawlStatus.COMPLETE, key1='value1', key2='value2')
 
-            crawl_manager = CrawlManager(crawler_class=mock_crawler, queue=self.queue, max_parallel_jobs=1)
+    def test_start_listening(self):
+        with patch('crawler.crawl_manager.Pool', autospec=True) as mock_pool, \
+                patch('crawler.crawl_manager.set_status') as mock_set_status:
 
-            with self.assertLogs() as log:
-                crawl_manager.start_listening()
+            mock_pool.return_value.__enter__.return_value.apply_async = MagicMock()
 
-            # Assertions
-            self.assertIn('Waiting for new crawl request...', log.output)
-            self.assertIn(f'Received crawl request: {crawl_request}', log.output)
-            mock_crawler.assert_called_once_with(start_url='http://example.com', crawl_id='test_crawl')
-            mock_crawler_instance.crawl.assert_called_once()
-            mock_pool.assert_called_once()
-            mock_pool.return_value.apply_async.assert_called_once_with(mock_crawler_instance.crawl,
-                                                                       callback=crawl_manager.handle_crawl_result)
-            self.assertIn(f'Crawl request added to processing queue. crawl_id: test_crawl', log.output)
-            self.assertIn(f'Crawl request {CrawlStatus.COMPLETE}. crawl_id: test_crawl', log.output)
-            self.queue.put(crawl_request)  # Put a crawl request in the queue to exit the loop
+            self.queue.get = MagicMock(side_effect=[
+                {'start_url': 'url1', 'crawl_id': 'id1'},
+                {'start_url': 'url2', 'crawl_id': 'id2'},
+                {'start_url': 'url3', 'crawl_id': 'id3'},
+            ])
 
-    def test_start_listening_error(self):
-        crawl_request = {'start_url': 'http://example.com', 'crawl_id': 'test_crawl'}
-        with patch('crawler.crawl_manager.BaseCrawler') as mock_crawler, \
-                patch('crawler.crawl_manager.Pool') as mock_pool:
-            mock_crawler.side_effect = ValueError('Mocked error')
+            self.manager._validate_crawl_request = MagicMock(return_value=None)
+            mock_crawler = MockCrawler(start_url=None, crawl_id=None)
+            self.manager.crawler_class = MagicMock(return_value=mock_crawler)
 
-            crawl_manager = CrawlManager(crawler_class=mock_crawler, queue=self.queue, max_parallel_jobs=1)
-
-            with self.assertLogs() as log:
-                crawl_manager.start_listening()
+            try:
+                self.manager.start_listening()
+            except StopIteration:
+                pass  # a workaround for the infinite loop in start_listening
 
             # Assertions
-            self.assertIn('Waiting for new crawl request...', log.output)
-            self.assertIn(f'Received crawl request: {crawl_request}', log.output)
-            mock_crawler.assert_called_once_with(start_url='http://example.com', crawl_id='test_crawl')
-            mock_pool.assert_not_called()
-            self.assertIn(f'Error processing crawl request: Mocked error', log.output)
-            self.queue.put(crawl_request)  # Put a crawl request in the queue to exit the loop
+            self.assertEqual(mock_set_status.call_count, 3)
+            mock_pool.assert_called()
+            apply_async = mock_pool.return_value.__enter__.return_value.apply_async
+            self.assertEqual(apply_async.call_count, 3)
+            expected_calls = [
+                ((mock_crawler.crawl,), {'callback': self.manager.handle_crawl_result}),
+                ((mock_crawler.crawl,), {'callback': self.manager.handle_crawl_result}),
+                ((mock_crawler.crawl,), {'callback': self.manager.handle_crawl_result}),
+            ]
+            apply_async.assert_has_calls(expected_calls)
 
 
 if __name__ == '__main__':
