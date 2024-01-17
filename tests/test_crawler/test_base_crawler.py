@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import Mock
 
-from src.crawler.base_crawler import BaseCrawler
+from crawler.base_crawler import BaseCrawler
 
 
 class TestBaseCrawler(unittest.TestCase):

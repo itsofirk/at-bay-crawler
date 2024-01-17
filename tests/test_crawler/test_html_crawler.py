@@ -1,8 +1,8 @@
 import unittest
 from unittest.mock import Mock, patch, ANY
 
-from src.crawler.html_crawler import HTMLCrawler
-from src.infra.base_storage import BaseStorage
+from crawler.html_crawler import HTMLCrawler
+from infra.base_storage import BaseStorage
 from common.enums import CrawlStatus
 
 
