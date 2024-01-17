@@ -1,3 +1,8 @@
+# Web Crawler System
+
+This is a web crawler system designed and implemented as a part of a software engineering job assignment for a data
+infrastructure team. The system is built in Python and follows the given instructions.
+
 ## Getting Started
 
 1. **Installation:** Install the required dependencies:
