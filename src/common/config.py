@@ -13,6 +13,7 @@ class RedisConfig(BaseSettings):
 class WebAppConfig(BaseSettings):
     class Config:
         env_prefix = 'WEBAPP_'
+
     host: str = '0.0.0.0'
     port: int = 8000
 
