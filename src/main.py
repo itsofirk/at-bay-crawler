@@ -29,6 +29,13 @@ def setup_crawler_manager():
                         feed_storage=feed_storage)
 
 
+def use_dotenv(dotenv_path=None):
+    from dotenv import load_dotenv
+    logger.warning(f'Using .env file to set environment variables')
+    logger.debug(f'dotenv_path: {dotenv_path}')
+    load_dotenv(dotenv_path=dotenv_path)
+
+
 if __name__ == "__main__":
     try:
         shared_queue = init_queue()
