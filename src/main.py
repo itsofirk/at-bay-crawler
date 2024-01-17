@@ -24,7 +24,9 @@ def start_webapp(queue):
 
 
 def setup_crawler_manager():
-    feed_storage = LocalFSStorage(base_dir="crawl_jobs")
+    from common.config import CommonConfig
+    config = CommonConfig()
+    feed_storage = LocalFSStorage(base_dir=config.workdir)
     return CrawlManager(HTMLCrawler,
                         queue=shared_queue,
                         max_parallel_jobs=config.crawler_max_parallel_jobs,
