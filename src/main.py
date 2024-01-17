@@ -16,6 +16,7 @@ def start_webapp(queue):
     webapp_config = WebAppConfig()
     try:
         app.queue = queue
+        logger.info('Starting webapp...')
         uvicorn.run(app, host=webapp_config.host, port=webapp_config.port)
         logger.info('Webapp started successfully.')
     except Exception as e:
