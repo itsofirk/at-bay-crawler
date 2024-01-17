@@ -2,12 +2,17 @@ from pydantic_settings import BaseSettings
 
 
 class RedisConfig(BaseSettings):
-    db_host: str = 'localhost'
-    db_port: int = 6379
-    db_db: int = 0
+    class Config:
+        env_prefix = 'REDIS_'
+
+    host: str = 'localhost'
+    port: int = 6379
+    db_index: int = 0
 
 
 class WebAppConfig(BaseSettings):
+    class Config:
+        env_prefix = 'WEBAPP_'
     host: str = '0.0.0.0'
     port: int = 8000
 
