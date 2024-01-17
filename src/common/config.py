@@ -1,4 +1,11 @@
+import os
 from pydantic_settings import BaseSettings
+
+if os.getenv('DOTENV_PATH'):
+    from dotenv import load_dotenv
+
+    dotenv_path = os.getenv('DOTENV_PATH')
+    load_dotenv(dotenv_path=dotenv_path)
 
 
 class RedisConfig(BaseSettings):
