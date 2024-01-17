@@ -8,8 +8,8 @@ class RedisConfig(BaseSettings):
 
 
 class WebAppConfig(BaseSettings):
-    webapp_host: str = '0.0.0.0'
-    webapp_port: int = 8000
+    host: str = '0.0.0.0'
+    port: int = 8000
 
 
 class CommonConfig(BaseSettings):
