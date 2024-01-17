@@ -12,9 +12,11 @@ logger = setup_logger(__name__)
 
 def start_webapp(queue):
     from webapp.views import app
+    from common.config import WebAppConfig
+    webapp_config = WebAppConfig()
     try:
         app.queue = queue
-        uvicorn.run(app, host="0.0.0.0", port=8000)
+        uvicorn.run(app, host=webapp_config.host, port=webapp_config.port)
         logger.info('Webapp started successfully.')
     except Exception as e:
         logger.error(f'Error starting webapp: {str(e)}')
@@ -25,7 +27,7 @@ def setup_crawler_manager():
     feed_storage = LocalFSStorage(base_dir="crawl_jobs")
     return CrawlManager(HTMLCrawler,
                         queue=shared_queue,
-                        max_parallel_jobs=1,
+                        max_parallel_jobs=config.max_parallel_jobs,
                         feed_storage=feed_storage)
 
 
