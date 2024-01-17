@@ -3,10 +3,12 @@ import logging
 import redis
 
 from common.enums import CrawlStatus
+from common.config import RedisConfig
 
 logger = logging.getLogger(__name__)
+_config = RedisConfig()
 
-conn = redis.Redis(host='localhost', port=6379, db=0)
+conn = redis.Redis(host=_config.host, port=_config.port, db=_config.db_index)
 atexit.register(conn.close)
 
 
